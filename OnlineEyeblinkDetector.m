@@ -87,7 +87,8 @@ function pushbtn_start_Callback(hObject, eventdata, handles)
     g_handles = handles;
     
    % timer_id_4camera= timer('TimerFcn','CameraRecording','StartDelay',0,'Period',0.05,'ExecutionMode','FixedRate');
-    timer_id_4obtaining_data= timer('TimerFcn','DataProcessing','StartDelay',0,'Period',1,'ExecutionMode','FixedRate');
+    timer_id_4obtaining_data= timer('TimerFcn','DataProcessing', ...
+        'StartDelay',0,'Period',p.DelayTime,'ExecutionMode','FixedRate');
     
     start(timer_id_4obtaining_data);
     %start(timer_id_4camera);
@@ -133,29 +134,40 @@ function init4Camera()
 
     
 function p = init4Laxtha(p)
-    ChNum = 1;
-    SR = 9;
-    gain = 128;
-    p.BufferLength_Laxtha = 512;
-    MatScanStart(ChNum, SR, gain);
+    MatScanStart(p.ChNum, p.SR, p.gain);
 
 function p = init4MSDW_Processing
     clear p;
     
+    %% Initial Parameter Setup
+    p.ChNum = 8;
+    ChNum_max = 2^ceil(log2(ChNum));
+    p.SR = 6; % Sampling Rate = 2^SR 
+    p.gain = 128;
+    p.BufferTime = 10; % in sec
+    
+    p.BufferLength_Laxtha = 512/ChNum_max;
+    p.DelayTime = p.BufferLength_Laxtha/(2^SR);
+    
     p.min_window_width = 6; %6 = 6/64  = about 93.8 ms
     p.max_window_width = 14; %14 = 14/64  = 448/2048 = about 220 ms
-    p.samplingFrequency2Use = 64 ; %64;
-   
+    p.samplingFrequency2Use = 2^SR; %64;
+    p.queuelength = p.BufferTime * p.samplingFrequency2Use;
+    p.drift_filter_time = 10; % in seconds (should < BufferTime)
+    
+    p.dataqueue   = circlequeue(p.queuelength, p.ChNum);
+    p.dataqueue.data(:,:) = NaN;
+    p.medianfilter_size = 5; % The number of samples
+    p.buffer_4medianfilter = circlequeue(p.medianfilter_size, p.ChNum);
+    
+    %% Blink Detection related Parameters (Not in use)
+    
     p.threshold  =-1;
     p.prev_threshold = -1;
     p.min_th_abs_ratio = 0.4;
     
     p.nBin4Histogram = 50; %Histogram을 작성하는 데에 사용할 bin의 수
     
-    p.queuelength = 10 * p.samplingFrequency2Use;
-    p.drift_filter_time = 10; % in seconds
-    
-    p.dataqueue   = circlequeue(p.queuelength,1);
     p.v_dataqueue  = circlequeue(p.queuelength,1);
     p.acc_dataqueue = circlequeue(p.queuelength,1);
     p.msdw = circlequeue(p.queuelength,1);
@@ -163,21 +175,19 @@ function p = init4MSDW_Processing
     p.indexes_localMax = circlequeue(p.queuelength/2,1);
     p.indexes_localMin = circlequeue(p.queuelength/2,1);
     p.detectedRange_inQueue =  circlequeue(p.queuelength/2,2);
-    p.msdw_minmaxdiff =  circlequeue(p.queuelength/2,1); %msdw 를 local min과 max와의 차이 형태로 변환시키는 데이터
+    
+    % msdw 를 local min과 max와의 차이 형태로 변환시키는 데이터
+    p.msdw_minmaxdiff =  circlequeue(p.queuelength/2,1);
     p.msdw_minmaxdiff.data(:,:) = Inf;
     
     p.histogram = accHistogram;
-    
-    p.dataqueue.data(:,:) = NaN;
-    p.medianfilter_size = 5;
-    p.buffer_4medianfilter = circlequeue(p.medianfilter_size,1);
     
     %히스토그램과 관련된 변수설정
     %bHistogramAvailable = 0;
     p.nMinimalData4HistogramCalculation = 5*p.samplingFrequency2Use; %5초. queuelength 보다 짧아야 한다. histogram을 만드는데 필요한 데이터 point의 개수가 아닌, source 데이터의 길이를 의미한다.
     p.alpha = 0;
     p.v = 0.05;
-
+%%
     
 
 
