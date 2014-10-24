@@ -4,7 +4,7 @@
 %여기서는 64 Hz 단위로 데이터를 사용한다.
 function DataProcessing()
     tic
-    global rawData;     %Laxtha 장비에서 데이터가 들어오는 변수
+    global rawData;     % Laxtha 장비에서 데이터가 들어오는 변수
     global p;
  %   global g_handles;
 %    plot(g_handles.axes_source,rawData.Value);
@@ -13,24 +13,24 @@ function DataProcessing()
     d = rawData.Value(1:8:p.BufferLength_Laxtha,1);
     nData = 64;
 
+    % Apply Baseline Drift Removal Algorithm using Median Value
+    % - assuming constant baseline drift for local time window
+    median_window_size = p.drift_filter_time * p.samplingFrequency2Use;
+    if(p.dataqueue.datasize < median_window_size)
+        return;
+    else
+        baseline_drift_cur = median(p.dataqueue.data);
+        d = d - baseline_drift_cur;
+    end
     
     for i=1:nData
 
         % Noise Removal by Applying Median Filter using Buffer
         p.buffer_4medianfilter.add(d(i));
-        if(p.buffer_4medianfilter.datasize<p.medianfilter_size)
+        if(p.buffer_4medianfilter.datasize < p.medianfilter_size)
             return;
         else
             d(i)= median(p.buffer_4medianfilter.data);
-        end
-        
-        % Apply Baseline Drift Removal Algorithm using Median Value
-        % - assuming constant baseline drift for local time window
-        if(p.dataqueue.datasize < p.queuelength)
-            return;
-        else
-            baseline_drift_cur = median(p.dataqueue.data);
-            d(i) = d(i) - baseline_drift_cur;
         end
         
         % Data Add to Queue

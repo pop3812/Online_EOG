@@ -152,8 +152,8 @@ function p = init4MSDW_Processing
     
     p.nBin4Histogram = 50; %Histogram을 작성하는 데에 사용할 bin의 수
     
-    p.queuelength = 10* p.samplingFrequency2Use;
-    
+    p.queuelength = 10 * p.samplingFrequency2Use;
+    p.drift_filter_time = 10; % in seconds
     
     p.dataqueue   = circlequeue(p.queuelength,1);
     p.v_dataqueue  = circlequeue(p.queuelength,1);
