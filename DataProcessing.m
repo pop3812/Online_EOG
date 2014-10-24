@@ -16,18 +16,28 @@ function DataProcessing()
     
     for i=1:nData
 
-        %Apply Median Filter using buffer
+        % Noise Removal by Applying Median Filter using Buffer
         p.buffer_4medianfilter.add(d(i));
         if(p.buffer_4medianfilter.datasize<p.medianfilter_size)
             return;
         else
             d(i)= median(p.buffer_4medianfilter.data);
         end
-
+        
+        % Apply Baseline Drift Removal Algorithm using Median Value
+        % - assuming constant baseline drift for local time window
+        if(p.dataqueue.datasize < p.queuelength)
+            return;
+        else
+            baseline_drift_cur = median(p.dataqueue.data);
+            d(i) = d(i) - baseline_drift_cur;
+        end
+        
+        % Data Add to Queue
+        p.dataqueue.add(d(i));        
+        idx_cur = p.dataqueue.datasize; % current index calculation
+        
 % Eye Blink Detection (Not in use for now)
-%         %data add to queue
-%         p.dataqueue.add(d(i));
-%         idx_cur = p.dataqueue.datasize; % index calculation
 % 
 %          [range, t, nDeletedPrevRange] = eogdetection_msdw_online( ...
 %              p.dataqueue, p.v_dataqueue, p.acc_dataqueue, idx_cur, ...

@@ -142,9 +142,9 @@ function p = init4Laxtha(p)
 function p = init4MSDW_Processing
     clear p;
     
-    p.min_window_width = 5;  %6 = 6/64  = about 93.8 ms
-    p.max_window_width = 11;  %14 = 14/64  = 448/2048 = about 220 ms
-    p.samplingFrequency2Use = 50;%64;
+    p.min_window_width = 6; %6 = 6/64  = about 93.8 ms
+    p.max_window_width = 14; %14 = 14/64  = 448/2048 = about 220 ms
+    p.samplingFrequency2Use = 64 ; %64;
    
     p.threshold  =-1;
     p.prev_threshold = -1;
