@@ -6,38 +6,52 @@ function DataProcessing()
     tic
     global rawData; % Laxtha 장비에서 데이터가 들어오는 변수
     global p;
- %   global g_handles;
+
+%   global g_handles;
 %    plot(g_handles.axes_source,rawData.Value);
 %    return;
 
     d = rawData.Value(1:p.BufferLength_Laxtha,:);
     
-    % Apply Baseline Drift Removal Algorithm using Median Value
-    % - assuming constant baseline drift for local time window
-    median_window_size = p.drift_filter_time * p.samplingFrequency2Use;
-    if(p.dataqueue.datasize < median_window_size)
-        return;
-    else
-        baseline_drift_cur = median(p.dataqueue.data);
-        baseline_drift_cur = repmat(baseline_drift_cur, ...
-            p.BufferLength_Laxtha, 1);
-        d = d - baseline_drift_cur;
-    end
-    
+    % Noise Removal by Applying Median Filter using Buffer
     for i=1:p.BufferLength_Laxtha
-
-        % Noise Removal by Applying Median Filter using Buffer
         p.buffer_4medianfilter.add(d(i,:));
         if(p.buffer_4medianfilter.datasize < p.medianfilter_size)
             return;
         else
             d(i,:)= median(p.buffer_4medianfilter.data);
         end
+    end
+
+    % Apply Baseline Drift Removal Algorithm using Median Value
+    % - assuming constant baseline drift for local time window
+    if(p.raw_dataqueue.datasize < p.median_window_size)
+        % Data Add to raw data queue
+        for i=1:p.BufferLength_Laxtha
+            p.raw_dataqueue.add(d(i,:));
+        end
+    else
+        % Baseline Drift of previous buffer data
+        baseline_drift_cur = median(p.raw_dataqueue.data);
+        baseline_drift_cur = repmat(baseline_drift_cur, ...
+            p.BufferLength_Laxtha, 1);
         
-        % Data Add to Queue
-        p.dataqueue.add(d(i,:));        
+        % Data Add to raw data queue
+        for i=1:p.BufferLength_Laxtha
+            p.raw_dataqueue.add(d(i,:));
+        end
+        
+        % Baseline Drift Removal
+        d = d - baseline_drift_cur;
+        
+    end
+    
+    % Data Add to data queue
+    for i=1:p.BufferLength_Laxtha
+        p.dataqueue.add(d(i,:));
         idx_cur = p.dataqueue.datasize; % current index calculation
-        
+    end
+    
 % Eye Blink Detection (Not in use for now)
 % 
 %          [range, t, nDeletedPrevRange] = eogdetection_msdw_online( ...
@@ -56,7 +70,7 @@ function DataProcessing()
 %             % p.detectedRange_inQueue.add(range);
 %          end
 
-    end
+    
     drawData_withRange();
     toc
 end
