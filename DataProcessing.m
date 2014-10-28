@@ -13,6 +13,11 @@ function DataProcessing()
 
     d = rawData.Value(1:p.BufferLength_Laxtha,:);
     
+    % Calculation of Horizontal and Vertical Components
+    Vx = d(:,2) - d(:,3);
+    Vy = d(:,4) - d(:,5);
+    d = [Vx, Vy];
+    
     % Noise Removal by Applying Median Filter using Buffer
     for i=1:p.BufferLength_Laxtha
         p.buffer_4medianfilter.add(d(i,:));
