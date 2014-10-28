@@ -6,7 +6,7 @@ function DataProcessing()
     tic
     global rawData; % Laxtha 장비에서 데이터가 들어오는 변수
     global p;
-
+%
 %   global g_handles;
 %    plot(g_handles.axes_source,rawData.Value);
 %    return;
