@@ -82,8 +82,13 @@ end
 function drawData_withRange()
     global p;
     global g_handles;
-    plot(g_handles.axes_source, p.dataqueue.data);
-    xlim([0 p.queuelength]);
+    
+    % Graph shifts to the left @ every second
+    data_to_show = circshift(p.dataque.data, -p.dataque.index_start);
+    
+    plot(g_handles.axes_source, data_to_show);
+    line([0 p.queuelength], [0 0], 'color', 'black');
+    xlim([0 p.queuelength]);S
     drawRange();
 end
     
