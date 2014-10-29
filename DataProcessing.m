@@ -10,14 +10,14 @@ function DataProcessing()
 %   global g_handles;
 %    plot(g_handles.axes_source,rawData.Value);
 %    return;
-
-    d = rawData.Value(1:p.BufferLength_Laxtha,:);
+    
+    d = reshape(rawData.Value, p.BufferLength_Laxtha, p.ChNum);
     
     % Calculation of Horizontal and Vertical Components
-    Vx = d(:,2) - d(:,3);
-    Vy = d(:,4) - d(:,5);
+    Vx = d(:,1) - d(:,2);
+    Vy = d(:,3) - d(:,4);
     d = [Vx, Vy];
-    
+    plot(d);
     % Noise Removal by Applying Median Filter using Buffer
     for i=1:p.BufferLength_Laxtha
         p.buffer_4medianfilter.add(d(i,:));
@@ -75,7 +75,6 @@ function DataProcessing()
 %             % p.detectedRange_inQueue.add(range);
 %          end
 
-    
     drawData_withRange();
     toc
 end

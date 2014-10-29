@@ -140,9 +140,10 @@ function p = init4MSDW_Processing
     clear p;
     
     %% Initial Parameter Setup
-    p.ChNum = 8;
+    p.ChNum = 4;
+    p.CompNum = 2; % Number of Components / Horizontal, Vertical
     ChNum_max = 2^ceil(log2(p.ChNum));
-    p.SR = 6; % Sampling Rate = 2^SR 
+    p.SR = 7; % Sampling Rate = 2^SR 
     p.gain = 128;
     p.BufferTime = 10; % in sec
     
@@ -155,15 +156,15 @@ function p = init4MSDW_Processing
     p.queuelength = p.BufferTime * p.samplingFrequency2Use;
     p.drift_filter_time = 10; % in seconds (should < BufferTime)
         
-    p.dataqueue   = circlequeue(p.queuelength, p.ChNum);
+    p.dataqueue   = circlequeue(p.queuelength, p.CompNum);
     p.dataqueue.data(:,:) = NaN;
     
-    p.raw_dataqueue   = circlequeue(p.queuelength, p.ChNum);
+    p.raw_dataqueue   = circlequeue(p.queuelength, p.CompNum);
     p.raw_dataqueue.data(:,:) = NaN;
     
-    p.medianfilter_size = 5; % The number of samples
+    p.medianfilter_size = 10; % The number of samples
     p.median_window_size = p.drift_filter_time * p.samplingFrequency2Use;
-    p.buffer_4medianfilter = circlequeue(p.medianfilter_size, p.ChNum);
+    p.buffer_4medianfilter = circlequeue(p.medianfilter_size, p.CompNum);
     
     %% Blink Detection related Parameters (Not in use)
     
