@@ -17,7 +17,7 @@ function DataProcessing()
     Vx = d(:,1) - d(:,2);
     Vy = d(:,3) - d(:,4);
     d = [Vx, Vy];
-    plot(d);
+
     % Noise Removal by Applying Median Filter using Buffer
     for i=1:p.BufferLength_Laxtha
         p.buffer_4medianfilter.add(d(i,:));
