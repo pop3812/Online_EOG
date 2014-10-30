@@ -22,7 +22,7 @@ function varargout = OnlineEyeblinkDetector(varargin)
 
 % Edit the above text to modify the response to help OnlineEyeblinkDetector
 
-% Last Modified by GUIDE v2.5 23-Oct-2014 18:27:28
+% Last Modified by GUIDE v2.5 30-Oct-2014 10:54:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -147,6 +147,10 @@ function p = init4MSDW_Processing
     p.gain = 128;
     p.BufferTime = 10; % in sec
     
+    p.drift_filter_time = 10; % in seconds (should < BufferTime)    
+    p.medianfilter_size = 10; % The number of samples
+    p.hist_bin_size = 30;
+    
     p.BufferLength_Laxtha = 512/ChNum_max;
     p.DelayTime = p.BufferLength_Laxtha/(2^p.SR);
     
@@ -154,7 +158,6 @@ function p = init4MSDW_Processing
     p.max_window_width = 14; %14 = 14/64  = 448/2048 = about 220 ms
     p.samplingFrequency2Use = 2^p.SR; %64;
     p.queuelength = p.BufferTime * p.samplingFrequency2Use;
-    p.drift_filter_time = 10; % in seconds (should < BufferTime)
         
     p.dataqueue   = circlequeue(p.queuelength, p.CompNum);
     p.dataqueue.data(:,:) = NaN;
@@ -162,7 +165,9 @@ function p = init4MSDW_Processing
     p.raw_dataqueue   = circlequeue(p.queuelength, p.CompNum);
     p.raw_dataqueue.data(:,:) = NaN;
     
-    p.medianfilter_size = 10; % The number of samples
+    p.histogram = zeros(p.hist_bin_size, p.CompNum);
+    p.hist_centers = zeros(p.hist_bin_size, p.CompNum);
+    
     p.median_window_size = p.drift_filter_time * p.samplingFrequency2Use;
     p.buffer_4medianfilter = circlequeue(p.medianfilter_size, p.CompNum);
     
@@ -231,9 +236,9 @@ eventdata.Key
 
 
 % --- Executes during object creation, after setting all properties.
-function axes2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to axes2 (see GCBO)
+function hist_plot_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to hist_plot (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: place code in OpeningFcn to populate axes2
+% Hint: place code in OpeningFcn to populate hist_plot

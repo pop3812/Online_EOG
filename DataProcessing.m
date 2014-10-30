@@ -51,6 +51,11 @@ function DataProcessing()
         
     end
     
+    % Histogram Calculation for future use (e.g. threshold decision)
+    [p.histogram, p.hist_centers] = hist(d, p.hist_bin_size);
+    % Normaization
+    p.histogram = p.histogram./p.BufferLength_Laxtha;
+    
     % Data Add to data queue
     for i=1:p.BufferLength_Laxtha
         p.dataqueue.add(d(i,:));
@@ -87,8 +92,13 @@ function drawData_withRange()
     data_to_show = circshift(p.dataque.data, -p.dataque.index_start);
     
     plot(g_handles.axes_source, data_to_show);
+    
+    grid on;
     line([0 p.queuelength], [0 0], 'color', 'black');
-    xlim([0 p.queuelength]);S
+    xlim([0 p.queuelength]);
+    
+    bar(g_handles.hist_plot, p.hist_centers, p.histogram);
+    
     drawRange();
 end
     
